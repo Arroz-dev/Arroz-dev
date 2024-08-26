@@ -1,4 +1,5 @@
-const { default: makeWASocket, DisconnectReason } = require('@adiwajshing/baileys');
+const makeWASocket = require('@adiwajshing/baileys').default;
+const { DisconnectReason } = require('@adiwajshing/baileys');
 const { Boom } = require('@hapi/boom');
 const fs = require('fs');
 const path = require('path');
@@ -7,14 +8,14 @@ const path = require('path');
 const authFilePath = path.join(__dirname, 'auth_info.json');
 
 // Cargar el estado de autenticación desde el archivo
-let authState = { keys: {}, creds: {} };
+let authState = {};
 if (fs.existsSync(authFilePath)) {
     authState = JSON.parse(fs.readFileSync(authFilePath));
 }
 
 // Función para guardar el estado de autenticación
-const saveAuthState = () => {
-    fs.writeFileSync(authFilePath, JSON.stringify(authState, null, 2));
+const saveAuthState = (newAuthState) => {
+    fs.writeFileSync(authFilePath, JSON.stringify(newAuthState, null, 2));
 };
 
 // Número específico que debe enviar el mensaje para que el bot responda
@@ -29,8 +30,7 @@ async function startBot() {
 
     // Guarda el estado cuando ocurra un cambio
     sock.ev.on('creds.update', (newCreds) => {
-        authState = newCreds;
-        saveAuthState();
+        saveAuthState(newCreds);
     });
 
     // Maneja eventos de conexión
