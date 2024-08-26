@@ -1,4 +1,5 @@
-const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@adiwajshing/baileys');
+const makeWASocket = require('@adiwajshing/baileys').default;
+const { DisconnectReason } = require('@adiwajshing/baileys');
 const { Boom } = require('@hapi/boom');
 const fs = require('fs');
 const path = require('path');
@@ -7,13 +8,13 @@ const path = require('path');
 const authFilePath = path.join(__dirname, 'auth_info.json');
 
 // Usa useSingleFileAuthState para manejar la autenticación
-const { state, saveState } = useSingleFileAuthState(authFilePath);
+const { state, saveState } = require('@adiwajshing/baileys').useSingleFileAuthState(authFilePath);
 
 // Número específico que debe enviar el mensaje para que el bot responda
 const specificNumber = '50371823021@s.whatsapp.net';
 
 // Función principal para iniciar el bot
-async function startBot() {
+function startBot() {
     const sock = makeWASocket({
         auth: state,
         printQRInTerminal: true // Muestra el código QR en la terminal para escanearlo con WhatsApp
