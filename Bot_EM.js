@@ -1,6 +1,7 @@
 const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@adiwajshing/baileys');
 const { Boom } = require('@hapi/boom');
-const { state, saveState } = useSingleFileAuthState('./auth_info.json');
+const { useSingleFileAuthState } = require('@adiwajshing/baileys');
+
 
 // Función principal para iniciar el bot
 async function startBot() {
