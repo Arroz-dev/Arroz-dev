@@ -11,7 +11,7 @@ const authFilePath = path.join(__dirname, 'auth_info.json');
 const { state, saveState } = require('@adiwajshing/baileys').useSingleFileAuthState(authFilePath);
 
 // Número específico que debe enviar el mensaje para que el bot responda
-const specificNumber = '50371823021@s.whatsapp.net';
+const specificNumber = '12345678@s.whatsapp.net';
 
 // Función principal para iniciar el bot
 function startBot() {
@@ -44,7 +44,7 @@ function startBot() {
             if (msg && !msg.key.fromMe && msg.key.remoteJid === specificNumber) {
                 console.log('Received message:', msg);
                 try {
-                    await sock.sendMessage(msg.key.remoteJid, { text: 'rina murio we' });
+                    await sock.sendMessage(msg.key.remoteJid, { text: 'hello ' });
                 } catch (error) {
                     console.error('Error sending message:', error);
                 }
