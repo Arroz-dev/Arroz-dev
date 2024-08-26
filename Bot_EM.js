@@ -1,5 +1,4 @@
-const makeWASocket = require('@adiwajshing/baileys').default;
-const { DisconnectReason } = require('@adiwajshing/baileys');
+const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@adiwajshing/baileys');
 const { Boom } = require('@hapi/boom');
 const fs = require('fs');
 const path = require('path');
@@ -7,16 +6,8 @@ const path = require('path');
 // Ruta al archivo de autenticación
 const authFilePath = path.join(__dirname, 'auth_info.json');
 
-// Cargar el estado de autenticación desde el archivo
-let authState = {};
-if (fs.existsSync(authFilePath)) {
-    authState = JSON.parse(fs.readFileSync(authFilePath));
-}
-
-// Función para guardar el estado de autenticación
-const saveAuthState = (newAuthState) => {
-    fs.writeFileSync(authFilePath, JSON.stringify(newAuthState, null, 2));
-};
+// Usa useSingleFileAuthState para manejar la autenticación
+const { state, saveState } = useSingleFileAuthState(authFilePath);
 
 // Número específico que debe enviar el mensaje para que el bot responda
 const specificNumber = '50371823021@s.whatsapp.net';
@@ -24,14 +15,12 @@ const specificNumber = '50371823021@s.whatsapp.net';
 // Función principal para iniciar el bot
 async function startBot() {
     const sock = makeWASocket({
-        auth: authState,
+        auth: state,
         printQRInTerminal: true // Muestra el código QR en la terminal para escanearlo con WhatsApp
     });
 
     // Guarda el estado cuando ocurra un cambio
-    sock.ev.on('creds.update', (newCreds) => {
-        saveAuthState(newCreds);
-    });
+    sock.ev.on('creds.update', saveState);
 
     // Maneja eventos de conexión
     sock.ev.on('connection.update', (update) => {
