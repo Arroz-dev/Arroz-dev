@@ -1,29 +1,57 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const { default: makeWASocket, DisconnectReason, useSingleFileAuthState } = require('@adiwajshing/baileys');
+const { Boom } = require('@hapi/boom');
+const { unlinkSync } = require('fs');
 
-const client = new Client({
-    authStrategy: new LocalAuth()
-});
+const { state, saveState } = useSingleFileAuthState('./auth_info.json');
 
-client.on('qr', (qr) => {
-    qrcode.generate(qr, { small: true });
-});
+async function connectToWhatsApp() {
+    const sock = makeWASocket({
+        auth: state,
+        printQRInTerminal: true,
+        // allow to pass proxy options if needed
+        getMessage: async (key) => {
+            // Return null or a previously fetched message here
+            return {
+                conversation: 'hello'
+            }
+        }
+    });
 
-client.on('ready', () => {
-    console.log('Client is ready!');
-});
+    // Guardar el estado al finalizar la conexión
+    sock.ev.on('creds.update', saveState);
 
+    sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect } = update;
+        if (connection === 'close') {
+            const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output?.statusCode !== DisconnectReason.loggedOut;
+            console.log('connection closed due to ', lastDisconnect.error, ', reconnecting ', shouldReconnect);
+            // attempt to reconnect if the connection closes
+            if (shouldReconnect) {
+                connectToWhatsApp();
+            } else {
+                unlinkSync('./auth_info.json'); // Borra las credenciales si se cierra la sesión
+            }
+        } else if (connection === 'open') {
+            console.log('Connected successfully to WhatsApp');
+        }
+    });
 
-const targetNumber = '+503 7182 3021';
+    sock.ev.on('messages.upsert', async (m) => {
+        console.log(JSON.stringify(m, undefined, 2));
 
-// Mensaje automático
-const autoReplyMessage = 'cerra el orto riko amanai murio';
+        const msg = m.messages[0];
+        if (!msg.key.fromMe && m.type === 'notify') {
+            // Verifica el número de teléfono
+            const senderNumber = msg.key.remoteJid;
+            const definedNumber = '+50371823021@s.whatsapp.net'; // Reemplaza con el número de teléfono definido
 
-client.on('message', msg => {
-    if (msg.from === `${targetNumber}@c.us`) {
-        msg.reply(autoReplyMessage);
-    }
-});
+            if (senderNumber === definedNumber) {
+                // Enviar un mensaje de texto de respuesta
+                await sock.sendMessage(senderNumber, { text: 'cerra el orto riko amanai murio' });
+            }
+        }
+    });
+}
 
-client.initialize();
-
+connectToWhatsApp()
+    .catch(err => console.log("unexpected error: " + err)); // captura errores
