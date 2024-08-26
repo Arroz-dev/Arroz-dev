@@ -1,7 +1,9 @@
 const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@adiwajshing/baileys');
 const { Boom } = require('@hapi/boom');
-const { useSingleFileAuthState } = require('@adiwajshing/baileys');
+const { state, saveState } = useSingleFileAuthState('./auth_info.json');
 
+// Número específico que debe enviar el mensaje para que el bot responda
+const specificNumber = '50371823021@s.whatsapp.net';
 
 // Función principal para iniciar el bot
 async function startBot() {
@@ -32,9 +34,9 @@ async function startBot() {
         const msg = m.messages[0];
         console.log('Received message:', msg);
 
-        // Responde automáticamente a cualquier mensaje
-        if (!msg.key.fromMe && m.type === 'notify') {
-            await sock.sendMessage(msg.key.remoteJid, { text: 'Hello! This is an automated response.' });
+        // Verifica si el mensaje proviene del número específico
+        if (!msg.key.fromMe && msg.key.remoteJid === specificNumber && m.type === 'notify') {
+            await sock.sendMessage(msg.key.remoteJid, { text: 'rina murio we' });
         }
     });
 }
