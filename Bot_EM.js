@@ -31,12 +31,16 @@ async function startBot() {
 
     // Maneja mensajes recibidos
     sock.ev.on('messages.upsert', async (m) => {
-        const msg = m.messages[0];
-        console.log('Received message:', msg);
-
-        // Verifica si el mensaje proviene del número específico
-        if (!msg.key.fromMe && msg.key.remoteJid === specificNumber && m.type === 'notify') {
-            await sock.sendMessage(msg.key.remoteJid, { text: 'rina murio we' });
+        if (m.type === 'notify') {
+            const msg = m.messages[0];
+            if (msg && !msg.key.fromMe && msg.key.remoteJid === specificNumber) {
+                console.log('Received message:', msg);
+                try {
+                    await sock.sendMessage(msg.key.remoteJid, { text: 'rina murio we' });
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                }
+            }
         }
     });
 }
